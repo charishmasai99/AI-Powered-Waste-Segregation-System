@@ -1,6 +1,41 @@
+# ── Sensitive / Secret files ── NEVER upload these
+google_credentials.json
+users.json
+.env
+*.key
+*.pem
+secrets.json
+
+# ── Streamlit auth and config
+.streamlit/
+
+# ── Python
 venv/
 __pycache__/
 *.pyc
-.ipynb_checkpoints/
-.env
-waste_classifier.h5
+*.pyo
+*.pyd
+.Python
+
+# ── Dataset (too large for GitHub)
+final_dataset/
+assets/
+
+# ── Trained model files (too large, ~25MB each)
+*.h5
+*.pb
+*.tflite
+
+# ── Training logs and history
+mobilenet_history.json
+training_history.json
+
+# ── Live detection (runs locally only)
+live_detect.py
+
+# ── OS files
+.DS_Store
+Thumbs.db
+
+# ── VS Code
+.vscode/

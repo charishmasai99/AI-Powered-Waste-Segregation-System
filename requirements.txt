@@ -1,8 +1,10 @@
-tensorflow
-keras
-numpy
-opencv-python
-matplotlib
-scikit-learn
-streamlit
-pillow
+# ─── AI Waste Segregation System ── Requirements ────────────────────────────
+# Install with:  pip install -r requirements.txt
+
+tensorflow==2.13.0
+numpy==1.24.3
+opencv-python==4.8.0.76
+matplotlib==3.7.2
+scikit-learn==1.3.0
+streamlit==1.28.0
+pillow==10.0.0
