@@ -8,15 +8,51 @@ import os, sys, json, datetime, random
 import numpy as np
 import streamlit as st
 from PIL import Image
-from auth import render_auth_ui   # ← full auth module
+from auth_module import render_auth_ui   # ← full auth module
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 import tensorflow as tf
 from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
+st.markdown("""
+<style>
 
+/* Default tab text */
+.stTabs [role="tab"] {
+    color: #E6F4EA !important;   /* normal tabs */
+    font-weight: 500;
+}
+
+/* Active tab (selected one) */
+.stTabs [aria-selected="true"] {
+    color: #FF4B4B !important;   /* 🔥 red like your "Paper" */
+    border-bottom: 2px solid #FF4B4B !important;
+}
+
+/* Hover effect (optional nice UX) */
+.stTabs [role="tab"]:hover {
+    color: #4ADE80 !important;
+}
+
+</style>
+""", unsafe_allow_html=True)
 MODEL_PATH           = "waste_classifier_mobilenet.h5"
 CONFIDENCE_THRESHOLD = 40
+st.markdown("""
+<style>
 
+/* 🎯 ONLY expander headings (Plastic → Blue Bin etc.) */
+.stExpander summary {
+    color: #E6F4EA !important;   /* change this */
+    font-weight: 600 !important;
+}
+
+/* Optional: hover */
+.stExpander summary:hover {
+    color: #4ADE80 !important;
+}
+
+</style>
+""", unsafe_allow_html=True)
 # ── Full waste database ───────────────────────────────────────────────────────
 WASTE_INFO = {
     "plastic": {
@@ -237,44 +273,21 @@ if "user_info"   not in st.session_state: st.session_state.user_info   = None
 if "auth_tab"    not in st.session_state: st.session_state.auth_tab    = "login"
 
 # ── Page config ───────────────────────────────────────────────────────────────
+# ── Sidebar state ──
+if "sidebar_open" not in st.session_state:
+    st.session_state.sidebar_open = True
+
+# ── Page config (ONLY ONCE, MUST BE AT TOP) ──
 st.set_page_config(
     page_title="EcoSort AI",
     page_icon="♻️",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="expanded" 
 )
 
-# Force sidebar open
-st.markdown("""
-<style>
-[data-testid="stSidebar"] { min-width: 300px !important; max-width: 300px !important; }
-[data-testid="collapsedControl"] { display: none !important; }
-button[kind="header"] { display: none !important; }
-</style>
-<script>
-(function forceSidebar() {
-  try {
-    const doc = window.parent.document;
-    const sidebar = doc.querySelector('[data-testid="stSidebar"]');
-    if (sidebar) {
-      const style = window.parent.getComputedStyle(sidebar);
-      if (parseInt(style.width) < 100) {
-        const btn = doc.querySelector('[data-testid="collapsedControl"] button') ||
-                    doc.querySelector('button[aria-label="Open sidebar"]');
-        if (btn) btn.click();
-      }
-    }
-  } catch(e) {}
-  try {
-    const s = window.parent.document.createElement('style');
-    s.textContent = '[data-testid="stSidebar"]{min-width:300px!important;transform:none!important;} [data-testid="collapsedControl"]{display:none!important;}';
-    window.parent.document.head.appendChild(s);
-  } catch(e) {}
-})();
-</script>
-""", unsafe_allow_html=True)
 
-# ── CSS ───────────────────────────────────────────────────────────────────────
+
+# ── Styles + mobile sidebar toggle ────────────────────────────────────────────
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
@@ -287,20 +300,19 @@ html, body, [class*="css"], .stApp, .main, section[data-testid="stMain"] {
     min-height: 100vh !important;
 }
 .main .block-container { background: transparent !important; padding-top: 2rem !important; }
-#MainMenu, footer, header { visibility: hidden !important; }
-[data-testid="stSidebarNav"] { display: none !important; }
-[data-testid="collapsedControl"] { display: none !important; }
+#MainMenu, footer { visibility: hidden !important; }
+header { visibility: visible !important; }
 
+
+/* ── Sidebar colours ── */
 [data-testid="stSidebar"], section[data-testid="stSidebar"] {
     background: #0A1420 !important;
     border-right: 1px solid rgba(74,222,128,0.18) !important;
-    min-height: 100vh !important; min-width: 240px !important; width: 240px !important;
+    min-height: 100vh !important;
 }
 [data-testid="stSidebar"] > div:first-child { background: #0A1420 !important; padding: 20px 16px !important; }
 [data-testid="stSidebar"] p, [data-testid="stSidebar"] span,
-[data-testid="stSidebar"] div, [data-testid="stSidebar"] label {
-    color: rgba(255,255,255,0.85) !important;
-}
+[data-testid="stSidebar"] div, [data-testid="stSidebar"] label { color: rgba(255,255,255,0.85) !important; }
 [data-testid="stSidebar"] .stButton > button {
     background: transparent !important; border: none !important;
     text-align: left !important; padding: 10px 14px !important;
@@ -311,14 +323,41 @@ html, body, [class*="css"], .stApp, .main, section[data-testid="stMain"] {
 [data-testid="stSidebar"] .stButton > button:hover {
     background: rgba(74,222,128,0.12) !important; color: #4ADE80 !important;
 }
-.stMarkdown p, .stMarkdown span, p, label { color: rgba(255,255,255,0.85); }
-[data-testid="stSidebar"] {
-    display: block !important; visibility: visible !important;
-    transform: none !important; width: 300px !important; min-width: 300px !important;
-}
-section[data-testid="stSidebarContent"] { display: block !important; }
-h1,h2,h3,h4,h5,h6 { color: #FFFFFF !important; }
 
+/* ───────── TARGETED TEXT COLOR FIX ───────── */
+
+/* ONLY your custom components */
+.panel,
+.kpi,
+.result-card,
+.seg-panel,
+.eco-card,
+.up-card,
+.lc-step {
+    color: #FFFFFF !important;
+}
+
+/* Fix text inside these components */
+.panel *,
+.kpi *,
+.result-card *,
+.seg-panel *,
+.eco-card *,
+.up-card *,
+.lc-step * {
+    color: inherit !important;
+}
+
+/* Sidebar user card (your profile box) */
+section[data-testid="stSidebar"] .panel,
+section[data-testid="stSidebar"] .panel * {
+    color: #FFFFFF !important;
+}
+
+/* Fix faded text (like email, labels) */
+small, span, p {
+    opacity: 1 !important;
+}
 .status-bar{font-size:11px;font-weight:600;color:#4ADE80!important;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px}
 .page-title{font-size:30px;font-weight:900;color:#FFFFFF!important;margin:0 0 24px;letter-spacing:-0.5px}
 .kpi{background:rgba(255,255,255,0.07);border-radius:16px;padding:22px;border:1px solid rgba(74,222,128,0.15);position:relative;backdrop-filter:blur(8px)}
@@ -369,8 +408,6 @@ h1,h2,h3,h4,h5,h6 { color: #FFFFFF !important; }
 .stTextInput input,.stTextArea textarea{background:rgba(255,255,255,0.07)!important;border-radius:10px!important;border:1px solid rgba(74,222,128,0.2)!important;color:#FFFFFF!important;font-size:14px!important}
 .stButton>button{border-radius:12px!important;font-weight:600!important;font-size:14px!important}
 .cam-result-box{background:rgba(255,255,255,0.07);border-radius:16px;padding:20px;border:2px solid #4ADE80;margin-top:16px}
-
-/* Landing page */
 .gs-hero{min-height:100vh;background:linear-gradient(135deg,#0A1628 0%,#0D2B1A 50%,#051A10 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 24px;position:relative;overflow:hidden;text-align:center}
 .gs-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(74,222,128,0.12);border:1px solid rgba(74,222,128,0.3);border-radius:100px;padding:8px 18px;font-size:13px;font-weight:600;color:#4ADE80;margin-bottom:32px}
 .gs-headline{font-size:clamp(40px,7vw,72px);font-weight:900;color:#FFFFFF;line-height:1.08;margin-bottom:20px;letter-spacing:-1.5px}
@@ -405,6 +442,9 @@ h1,h2,h3,h4,h5,h6 { color: #FFFFFF !important; }
 </style>
 """, unsafe_allow_html=True)
 
+# ── Mobile sidebar toggle ─────────────────────────────────────────────────────
+# Uses st.components.v1.html which creates its own iframe.
+# That iframe IS same-origin with Streamlit's shell, so window.parent works.
 
 # ── Load model (cached for speed) ────────────────────────────────────────────
 @st.cache_resource
@@ -539,10 +579,6 @@ if not st.session_state.get_started:
 if st.session_state.user_info is None:
     render_auth_ui()
     st.stop()
-
-# ══════════════════════════════════════════════════════════════════════════════
-# SIDEBAR
-# ══════════════════════════════════════════════════════════════════════════════
 with st.sidebar:
     st.markdown("""
     <div style="display:flex;align-items:center;gap:12px;padding:4px 0 24px">
@@ -568,7 +604,7 @@ with st.sidebar:
               <div style="font-size:11px;color:rgba(255,255,255,0.4)">{u['email']}</div>
             </div>
           </div>
-          <div style="font-size:10px;color:rgba(74,222,128,0.7);font-weight:600">{provider_badge}</div>
+          <div style="font-size:10px;color:rgba(74,222,74,0.7);font-weight:600">{provider_badge}</div>
         </div>""", unsafe_allow_html=True)
 
     PAGES = [("🏠","Dashboard"),("📷","Waste Detection"),("📖","Guidelines"),("🌍","Eco Stories")]
@@ -607,6 +643,16 @@ with st.sidebar:
                 if key in st.session_state:
                     del st.session_state[key]
             st.rerun()
+# ── Sidebar toggle button ──
+col1, col2 = st.columns([1, 20])
+with col1:
+    if st.button("☰", use_container_width=True):
+        st.session_state.sidebar_open = not st.session_state.sidebar_open
+        st.rerun()
+
+# ══════════════════════════════════════════════════════════════════════════════
+# SIDEBAR
+# ══════════════════════════════════════════════════════════════════════════════
 
 # ══════════════════════════════════════════════════════════════════════════════
 # PAGE — DASHBOARD
@@ -871,14 +917,18 @@ elif st.session_state.page == "Guidelines":
         ("🔴 Red Bin","#D93025","#FCE8E6","General / Hazardous / Residual","Dirty wrappers, hygiene products, thermocol, batteries, broken items"),
     ]:
         st.markdown(f"""
-        <div style="background:{bg};border-radius:12px;padding:16px 20px;margin-bottom:10px;border-left:5px solid {color}">
+        <div style="background:{bg};border-radius:12px;padding:16px 20px;
+color:#202124 !important;">
           <div style="font-size:15px;font-weight:700;color:{color}!important">{bin_name}</div>
           <div style="font-size:12px;color:#5F6368!important;margin:2px 0 6px">{category}</div>
           <div style="font-size:13px;color:#3C4043!important">{items}</div>
         </div>""", unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
-
-    st.markdown("### 🗂️ Detailed Guidelines by Waste Type")
+    st.markdown("""
+<h3 style="color:#4ADE80;">
+🗂️ Detailed Guidelines by Waste Type
+</h3>
+""", unsafe_allow_html=True)
     for wk, info in WASTE_INFO.items():
         with st.expander(f"{info['icon']}  {info['label']}   →   {info['bin_icon']} {info['bin']}"):
             c1,c2,c3 = st.columns([1,1,1], gap="medium")
@@ -914,7 +964,7 @@ elif st.session_state.page == "Eco Stories":
     st.markdown('<div class="status-bar">System Status: Active</div>', unsafe_allow_html=True)
     st.markdown('<div class="page-title">🌍 Eco Stories & Upcycling Ideas</div>', unsafe_allow_html=True)
     st.markdown("""
-    <div style="background:#E6F4EA;border-radius:14px;padding:16px 22px;margin-bottom:24px;border-left:5px solid #1E8E3E">
+    <div style="background:#E6F4EA;color:#1B5E20 !important;border-radius:14px;padding:16px 22px;margin-bottom:24px;border-left:5px solid #1E8E3E">
       <div style="font-size:14px;color:#1B5E20!important;line-height:1.6">
         🌱 <b>Scan an item</b> in Waste Detection to get personalised eco-stories and upcycling ideas, or browse all categories below.
       </div>
@@ -925,7 +975,7 @@ elif st.session_state.page == "Eco Stories":
         info = WASTE_INFO.get(last_waste, WASTE_INFO["general"])
         st.markdown(f"### 📖 Last Scanned: {info['icon']} {info['label']}")
         st.markdown("""
-        <div style="background:#FFF;border-radius:16px;padding:22px 24px;border:1px solid #E8EAED;margin-bottom:20px">
+        <div style="background:#FFF;border-radius:16px;color:#202124 !important;padding:22px 24px;border:1px solid #E8EAED;margin-bottom:20px">
           <div style="font-size:16px;font-weight:700;color:#202124!important;margin-bottom:16px">⏳ Life Cycle Journey</div>""",
                     unsafe_allow_html=True)
         lc_colors = ["#1A73E8","#34A853","#FBBC04","#EA4335","#9C27B0"]
@@ -939,12 +989,12 @@ elif st.session_state.page == "Eco Stories":
         dec = info["decompose_years"]
         dec_str = (f"{int(dec*365)} days" if dec < 1 else f"{int(dec)} year{'s' if dec != 1 else ''}")
         st.markdown(f"""
-        <div style="background:#FCE8E6;border-radius:12px;padding:14px 18px;margin-top:10px;border-left:5px solid #D93025">
+        <div style="background:#FCE8E6;color:#B31412 !important;border-radius:12px;padding:14px 18px;margin-top:10px;border-left:5px solid #D93025">
           <div style="font-size:13px;color:#B31412!important">⚠️ <b>If sent to landfill</b> — takes <b>{dec_str}</b> to decompose.</div>
         </div></div>""", unsafe_allow_html=True)
 
         st.markdown("<br>", unsafe_allow_html=True)
-        st.markdown(f"### 💡 AI Upcycling Ideas for {info['label']}")
+        ### 💡 AI Upcycling Ideas for {info['label']}")
         up_cols = st.columns(min(len(info["upcycle"]), 3))
         for i, up in enumerate(info["upcycle"]):
             with up_cols[i % len(up_cols)]:
@@ -965,13 +1015,22 @@ elif st.session_state.page == "Eco Stories":
                 </div>""", unsafe_allow_html=True)
         st.markdown("---")
 
-    st.markdown("### 🗃️ Browse All Eco Stories")
+    st.markdown("""
+<h3 style="color:#FFFFFF; margin-top:10px;">
+🗃️ Browse All Eco Stories
+</h3>
+""", unsafe_allow_html=True)
     tabs = st.tabs([f"{v['icon']} {v['label']}" for v in WASTE_INFO.values()])
     for tab, (wk, info) in zip(tabs, WASTE_INFO.items()):
         with tab:
             tc1, tc2 = st.columns([1,1], gap="large")
             with tc1:
-                st.markdown(f"""<div style="font-size:15px;font-weight:700;color:#202124!important;margin-bottom:14px">⏳ Life Cycle of {info['label']}</div>""", unsafe_allow_html=True)
+                st.markdown(f"""
+<div style="font-size:15px;font-weight:700;color:#FFFFFF;margin-bottom:14px">
+⏳ Life Cycle of {info['label']}
+</div>
+""", unsafe_allow_html=True)
+                
                 lc_colors = ["#1A73E8","#34A853","#FBBC04","#EA4335","#9C27B0"]
                 for i,(ico,title,desc) in enumerate(info["lifecycle"]):
                     color = lc_colors[i % len(lc_colors)]
@@ -983,10 +1042,10 @@ elif st.session_state.page == "Eco Stories":
                 dec = info["decompose_years"]
                 dec_str = (f"{int(dec*365)} days" if dec < 1 else f"{int(dec):,} year{'s' if dec != 1 else ''}")
                 st.markdown(f"""
-                <div style="background:#FCE8E6;border-radius:12px;padding:12px 16px;margin-top:10px;border-left:5px solid #D93025">
+                <div style="background:#FCE8E6;color:#B31412 !important;border-radius:12px;padding:12px 16px;margin-top:10px;border-left:5px solid #D93025">
                   <div style="font-size:13px;color:#B31412!important">⚠️ <b>Landfill decomposition:</b> {dec_str}</div>
                 </div>
-                <div style="background:#E6F4EA;border-radius:12px;padding:12px 16px;margin-top:8px;border-left:5px solid #1E8E3E">
+                <div style="background:#E6F4EA;color:#1B5E20 !important;border-radius:12px;padding:12px 16px;margin-top:8px;border-left:5px solid #1E8E3E">
                   <div style="font-size:13px;color:#1B5E20!important">💡 {info['fun_fact']}</div>
                 </div>""", unsafe_allow_html=True)
             with tc2:

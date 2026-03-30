@@ -6,7 +6,7 @@
 import json, os, hashlib, secrets, re
 from datetime import datetime
 import streamlit as st
-
+print("AUTH MODULE LOADED")
 # ── Users database (JSON file) ────────────────────────────────────────────────
 USERS_FILE = "users.json"
 
@@ -23,7 +23,9 @@ def _save_users(users: dict):
     with open(USERS_FILE, "w") as f:
         json.dump(users, f, indent=2)
 
-def _hash_password(password: str, salt: str = None):
+from typing import Optional
+
+def _hash_password(password: str, salt: Optional[str] = None):
     if salt is None:
         salt = secrets.token_hex(16)
     hashed = hashlib.sha256((password + salt).encode()).hexdigest()
@@ -128,12 +130,11 @@ def upsert_google_user(google_info: dict) -> dict:
 # AUTH UI  ─  renders the full Login / Register / Google screen
 # =============================================================================
 def render_auth_ui():
-    """
-    Call this function where you previously had the Google sign-in block.
-    It handles the full auth flow and sets st.session_state.user_info on success.
-    """
+        # ── Google OAuth ─────────────────────────
+    authenticator = None
+    GOOGLE_AUTH_AVAILABLE = False
+    Authenticate=None
 
-    # ── Google OAuth callback check ───────────────────────────────────────────
     try:
         from streamlit_google_auth import Authenticate
         GOOGLE_AUTH_AVAILABLE = True
@@ -142,8 +143,8 @@ def render_auth_ui():
 
     if GOOGLE_AUTH_AVAILABLE:
         try:
-            redirect_uri = st.secrets.get("GOOGLE_REDIRECT_URI", "http://localhost:8501")
-            cookie_key   = st.secrets.get("COOKIE_KEY", "ecosort-secret-key-32chars-xyz!!")
+            redirect_uri = st.secrets.get("GOOGLE_REDIRECT_URI") or "http://localhost:8501"
+            cookie_key   = st.secrets.get("COOKIE_KEY") or "ecosort_super_secure_very_long_key_123456789"
 
             authenticator = Authenticate(
                 secret_credentials_path="google_credentials.json",
@@ -151,16 +152,20 @@ def render_auth_ui():
                 cookie_key=cookie_key,
                 redirect_uri=redirect_uri,
             )
+
             authenticator.check_authentification()
 
             if st.session_state.get("connected"):
                 g_info = st.session_state.get("user_info", {})
-                user   = upsert_google_user(g_info)
+                user = upsert_google_user(g_info)
                 st.session_state.user_info = user
                 st.rerun()
-        except Exception:
-            GOOGLE_AUTH_AVAILABLE = False
 
+        except Exception as e:
+            st.error(f"Google Auth Error: {e}")
+            GOOGLE_AUTH_AVAILABLE = False
+    
+    
     # ── Session tab state ─────────────────────────────────────────────────────
     if "auth_tab" not in st.session_state:
         st.session_state.auth_tab = "login"   # "login" | "register"
@@ -341,20 +346,16 @@ def render_auth_ui():
         </div>""", unsafe_allow_html=True)
 
         # ── Google Sign-In button ─────────────────────────────────────────────
-        if GOOGLE_AUTH_AVAILABLE:
-            if st.button("🔵  Continue with Google", use_container_width=True):
+        if GOOGLE_AUTH_AVAILABLE and authenticator:
+            login_clicked = st.button("🔵  Continue with Google", use_container_width=True)
+
+            if login_clicked:
                 try:
                     authenticator.login()
                 except Exception as e:
                     st.error(f"Google sign-in error: {e}")
         else:
-            st.markdown("""
-            <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);
-                        border-radius:12px;padding:13px;text-align:center">
-              <span style="font-size:13px;color:rgba(255,255,255,0.3)">
-                🔵 Google Sign-In unavailable (check google_credentials.json)
-              </span>
-            </div>""", unsafe_allow_html=True)
+            st.markdown("🔵 Google Sign-In unavailable")
 
         # ── Footer ────────────────────────────────────────────────────────────
         st.markdown("""
