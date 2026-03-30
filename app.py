@@ -7,18 +7,18 @@
 import os, sys, json, datetime, random
 import numpy as np
 import streamlit as st
-from PIL import Image
-from auth_module import render_auth_ui   # ← full auth module
-
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
-import tensorflow as tf
-# ── Page config (ONLY ONCE, MUST BE AT TOP) ──
 st.set_page_config(
     page_title="EcoSort AI",
     page_icon="♻️",
     layout="wide",
     initial_sidebar_state="expanded" 
 )
+from PIL import Image
+from auth_module import render_auth_ui   # ← full auth module
+
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+import tensorflow as tf
+
 from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 st.markdown("""
 <style>
