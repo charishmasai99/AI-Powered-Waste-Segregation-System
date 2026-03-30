@@ -1,70 +1,107 @@
-# AI-Powered Waste Segregation System
-A deep learning–based system for classifying waste images with confidence-aware predictions to handle visually similar materials.
+# ♻️ EcoSort AI – Smart Waste Segregation System
 
-## Project Overview
-This project focuses on building an image-based waste classification system using deep learning. The goal is to automatically categorize waste into appropriate classes using visual features, while handling ambiguity that arises from visually similar materials such as glass, plastic, and paper.
+An AI-powered web application that classifies waste using deep learning and provides actionable recycling guidance.
 
-## Problem Statement
-Manual waste segregation is inefficient and inconsistent. Image-based automation is challenging due to overlapping visual features across waste categories.
+---
 
-## Approach
- A deep learning–based classification model using transfer learning (MobileNetV2) was implemented, supported by dataset analysis, class imbalance handling, and confidence-aware prediction.
+## 🚀 Features
 
+* 🧠 **AI Waste Classification** (MobileNetV2-based model)
+* 🔍 Real-time image prediction
+* 📊 Confidence-aware predictions
+* ♻️ Smart bin recommendations (Blue, Green, Red, Grey)
+* 💡 Eco-friendly tips & upcycling ideas
+* 🔐 Google Authentication login
+* 📈 Dataset analysis & model evaluation tools
 
- ## User Interface
-A simple Streamlit-based interface was developed to allow users to upload waste images and view predictions directly on screen.  
-Low-confidence or mixed-waste cases are flagged as *Uncertain* to avoid incorrect classification.
+---
 
-## Technologies Used
-- Python
-- TensorFlow / Keras
-- OpenCV
-- NumPy, Matplotlib
-- Scikit-learn
+## 🖥️ Demo
 
-## Methodology
-1. Image preprocessing and augmentation
-2. CNN-based feature extraction
-3. Dataset analysis and class distribution study
-4. Model training with class weighting
-5. Evaluation using confusion matrix
-6. Confidence-aware prediction with uncertainty handling
+> Upload an image → Get waste category → See bin + eco suggestions
 
-## Key Features
-- Automated waste image classification  
-- Dataset distribution analysis and confusion matrix evaluation  
-- Confidence-aware prediction with mixed-waste detection  
-- Simple Streamlit-based user interface 
-- Category-specific waste management recommendations (reduce, reuse, recycle, compost)
+---
 
+## 📂 Project Structure
 
+```
+AI_Waste_Segregation/
+│── app.py                  # Main Streamlit app
+│── auth_module.py         # Authentication logic
+│── predict.py             # Model prediction
+│── dataset_analysis.py    # Dataset insights
+│── confusion_matrix.py    # Model evaluation
+│── class_indices.json     # Class mapping
+│── assets/                # Images & UI assets
+│── requirements.txt       # Dependencies
+```
 
-## How to run
-python train.py
-python dataset_analysis.py
+---
+
+## ⚙️ Installation
+
+```bash
+git clone https://github.com/charishmasai99/AI-Powered-Waste-Segregation-System.git
+cd AI-Powered-Waste-Segregation-System
+
+python -m venv venv
+venv\Scripts\activate   # Windows
+
+pip install -r requirements.txt
+```
+
+---
+
+## ▶️ Run the App
+
+```bash
+streamlit run app.py
+```
+
+---
+
+## 📊 Model Details
+
+* Architecture: **MobileNetV2**
+* Task: Multi-class image classification
+* Output: Waste category + confidence score
+
+---
+
+## 📈 Evaluation Tools
+
+Run:
+
+```bash
 python confusion_matrix.py
-python predict.py
+python dataset_analysis.py
+```
 
-## Evaluation
-Model performance was evaluated using dataset distribution analysis and confusion matrices to identify misclassification between similar waste categories.
+---
 
-## Dataset Distribution
-![Dataset Distribution](assets/dataset_distribution.png)
+## 🔐 Authentication
 
-## Confusion matrix
-![Confusion Matrix](assets/confusion_matrix.png)
+* Google OAuth login supported
+* Secrets stored securely via Streamlit
 
-## Sample Prediction
-![UI Prediction Output](assets/ui_prediction.png)
+---
 
-## Limitations
-Visual similarity between waste types can cause ambiguity. Future improvements include transfer learning models and a simple web interface.
+## 🌱 Use Case
 
-## Note
-Some TensorFlow warnings may appear during inference due to internal framework deprecations. These do not affect model performance or prediction results.
+* Smart waste segregation
+* Recycling awareness
+* Environmental sustainability
 
+---
 
-## Future Enhancements
-- Transfer learning using MobileNet/EfficientNet
-- Web-based user interface
-- IoT-based smart waste bins
+## 👩‍💻 Author
+
+**Sai Charishma**
+
+GitHub: https://github.com/charishmasai99
+
+---
+
+## ⭐ Support
+
+If you like this project, give it a ⭐ on GitHub!
