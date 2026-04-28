@@ -32,20 +32,17 @@
   2. Screenshot each page and save to assets/ folder
   3. Replace each placeholder below with: ![Page Name](assets/screenshot_name.png)
 -->
-
 | Landing Page | Dashboard |
 |---|---|
-| `assets/screenshot_landing.png` | `assets/screenshot_dashboard.png` |
+| ![Landing](assets/screenshot_landing.png) | ![Dashboard](assets/screenshot_dashboard.png) |
 
-| Waste Detection |
-|---|
-| `assets/screenshot_detection.png` |
-
-| Guidelines | Eco Stories |
+| Waste Detection | Guidelines |
 |---|---|
-| `assets/screenshot_guidelines.png` | `assets/screenshot_ecostories.png` |
+| ![Detection](assets/screenshot_detection.png) | ![Guidelines](assets/screenshot_guidelines.png) |
 
----
+| Eco Stories | |
+|---|---|
+| ![Eco Stories](assets/screenshot_ecostories.png) | |
 
 ## ✨ Features
 
