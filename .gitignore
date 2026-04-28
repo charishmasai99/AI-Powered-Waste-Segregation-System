@@ -19,7 +19,7 @@ __pycache__/
 
 # ── Dataset (too large for GitHub)
 final_dataset/
-assets/
+
 
 # ── Trained model files (too large, ~25MB each)
 *.h5
